@@ -2,6 +2,7 @@ package server
 
 import (
 	"database/sql"
+	"log"
 	"marathon-postgresql/controllers"
 
 	"github.com/gin-gonic/gin"
@@ -43,4 +44,9 @@ func InitHttpServer(config *viper.Viper, dbHandler *sql.DB) HttpServer {
 	}
 }
 
-func Start(hs HttpServer) {}
+func (hs HttpServer) Start() {
+	err := hs.router.Run(hs.config.GetString("http.server_address"))
+	if err != nil {
+		log.Fatalf("Error while starting HTTP server: %v", err)
+	}
+}
