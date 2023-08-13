@@ -40,6 +40,7 @@ func (rs RunnersService) UpdateRunner(runner *models.Runner) *models.ResponseErr
 	}
 
 	rs.runnersRepository.UpdateRunner(runner)
+	return nil
 }
 
 func (rs RunnersService) DeleteRunner(runnerId string) *models.ResponseError {
@@ -49,9 +50,28 @@ func (rs RunnersService) DeleteRunner(runnerId string) *models.ResponseError {
 	}
 
 	rs.runnersRepository.DeleteRunner(runnerId)
+	return nil
 }
 
-func (rs RunnersService) GetRunner(runnerId string) (*models.Runner, *models.ResponseError) {}
+func (rs RunnersService) GetRunner(runnerId string) (*models.Runner, *models.ResponseError) {
+	responseErr := validateRunnerId(runnerId)
+	if responseErr != nil {
+		return nil, responseErr
+	}
+
+	runner, responseErr := rs.runnersRepository.GetRunner(runnerId)
+	if responseErr != nil {
+		return nil, responseErr
+	}
+
+	results, responseErr := rs.resultsRepository.getAllRunnerResults(runnerId)
+	if responseErr != nil {
+		return nil, responseErr
+	}
+
+	runner.Result = results
+	return runner, nil
+}
 
 func (rs RunnersService) GetRunnersBatch(country string, year string) ([]*models.Runner, *models.ResponseError) {
 }
