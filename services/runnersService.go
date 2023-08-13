@@ -69,4 +69,13 @@ func validateRunner(runner *models.Runner) *models.ResponseError {
 	return nil
 }
 
-func validateRunnerId(runnerId string) *models.ResponseError {}
+func validateRunnerId(runnerId string) *models.ResponseError {
+	if runnerId == "" {
+		return &models.ResponseError{
+			Message: "Invalid runner ID",
+			Status:  http.StatusBadRequest,
+		}
+	}
+
+	return nil
+}
