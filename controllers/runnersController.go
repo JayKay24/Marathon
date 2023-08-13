@@ -92,4 +92,15 @@ func (rh RunnersController) GetRunner(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
-func (rh RunnersController) GetRunnersBatch(ctx *gin.Context) {}
+func (rh RunnersController) GetRunnersBatch(ctx *gin.Context) {
+	params := ctx.Request.URL.Query()
+	country := params.Get("country")
+	year := params.Get("year")
+	response, responseError := rh.runnersService.GetRunnersBatch(country, year)
+	if responseError != nil {
+		ctx.AbortWithError(responseError.Status, responseError)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response)
+}
