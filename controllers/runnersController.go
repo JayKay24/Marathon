@@ -45,7 +45,30 @@ func (rh RunnersController) CreateRunner(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
-func (rh RunnersController) UpdateRunner(ctx *gin.Context) {}
+func (rh RunnersController) UpdateRunner(ctx *gin.Context) {
+	body, err := io.ReadAll(ctx.Request.Body)
+	if err != nil {
+		log.Println("Error while reading update runner request body", err)
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	var runner models.Runner
+	err = json.Unmarshal(body, &runner)
+	if err != nil {
+		log.Println("Error while unmarshaling update runner request body", err)
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	responseError := rh.runnersService.UpdateRunner(&runner)
+	if responseError != nil {
+		ctx.AbortWithStatusJSON(responseError.Status, responseError)
+		return
+	}
+
+	ctx.Status(http.StatusNoContent)
+}
 
 func (rh RunnersController) DeleteRunner(ctx *gin.Context) {}
 
