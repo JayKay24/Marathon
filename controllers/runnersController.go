@@ -70,6 +70,15 @@ func (rh RunnersController) UpdateRunner(ctx *gin.Context) {
 	ctx.Status(http.StatusNoContent)
 }
 
-func (rh RunnersController) DeleteRunner(ctx *gin.Context) {}
+func (rh RunnersController) DeleteRunner(ctx *gin.Context) {
+	runnerId := ctx.Param("id")
+	responseError := rh.runnersService.DeleteRunner(runnerId)
+	if responseError != nil {
+		ctx.AbortWithStatusJSON(responseError.Status, responseError)
+		return
+	}
+
+	ctx.Status(http.StatusNoContent)
+}
 
 func (rh RunnersController) GetRunnersBatch(ctx *gin.Context) {}
