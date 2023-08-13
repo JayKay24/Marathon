@@ -36,9 +36,9 @@ func (rh ResultsController) CreateResult(ctx *gin.Context) {
 		return
 	}
 
-	response, responseError := rh.resultsService.CreateResult(&result)
-	if responseError != nil {
-		ctx.AbortWithStatusJSON(responseError.Status, responseError)
+	response, responseErr := rh.resultsService.CreateResult(&result)
+	if responseErr != nil {
+		ctx.AbortWithStatusJSON(responseErr.Status, responseErr)
 		return
 	}
 

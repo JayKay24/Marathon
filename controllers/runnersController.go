@@ -36,9 +36,9 @@ func (rh RunnersController) CreateRunner(ctx *gin.Context) {
 		return
 	}
 
-	response, responseError := rh.runnersService.CreateRunner(&runner)
-	if responseError != nil {
-		ctx.AbortWithStatusJSON(responseError.Status, responseError)
+	response, responseErr := rh.runnersService.CreateRunner(&runner)
+	if responseErr != nil {
+		ctx.AbortWithStatusJSON(responseErr.Status, responseErr)
 		return
 	}
 
@@ -61,9 +61,9 @@ func (rh RunnersController) UpdateRunner(ctx *gin.Context) {
 		return
 	}
 
-	responseError := rh.runnersService.UpdateRunner(&runner)
-	if responseError != nil {
-		ctx.AbortWithStatusJSON(responseError.Status, responseError)
+	responseErr := rh.runnersService.UpdateRunner(&runner)
+	if responseErr != nil {
+		ctx.AbortWithStatusJSON(responseErr.Status, responseErr)
 		return
 	}
 
@@ -72,9 +72,9 @@ func (rh RunnersController) UpdateRunner(ctx *gin.Context) {
 
 func (rh RunnersController) DeleteRunner(ctx *gin.Context) {
 	runnerId := ctx.Param("id")
-	responseError := rh.runnersService.DeleteRunner(runnerId)
-	if responseError != nil {
-		ctx.AbortWithStatusJSON(responseError.Status, responseError)
+	responseErr := rh.runnersService.DeleteRunner(runnerId)
+	if responseErr != nil {
+		ctx.AbortWithStatusJSON(responseErr.Status, responseErr)
 		return
 	}
 
@@ -83,9 +83,9 @@ func (rh RunnersController) DeleteRunner(ctx *gin.Context) {
 
 func (rh RunnersController) GetRunner(ctx *gin.Context) {
 	runnerId := ctx.Param("id")
-	response, responseError := rh.runnersService.GetRunner(runnerId)
-	if responseError != nil {
-		ctx.AbortWithStatusJSON(responseError.Status, responseError)
+	response, responseErr := rh.runnersService.GetRunner(runnerId)
+	if responseErr != nil {
+		ctx.AbortWithStatusJSON(responseErr.Status, responseErr)
 		return
 	}
 
@@ -96,9 +96,9 @@ func (rh RunnersController) GetRunnersBatch(ctx *gin.Context) {
 	params := ctx.Request.URL.Query()
 	country := params.Get("country")
 	year := params.Get("year")
-	response, responseError := rh.runnersService.GetRunnersBatch(country, year)
-	if responseError != nil {
-		ctx.AbortWithError(responseError.Status, responseError)
+	response, responseErr := rh.runnersService.GetRunnersBatch(country, year)
+	if responseErr != nil {
+		ctx.AbortWithError(responseErr.Status, responseErr)
 		return
 	}
 
