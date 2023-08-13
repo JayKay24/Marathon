@@ -81,4 +81,15 @@ func (rh RunnersController) DeleteRunner(ctx *gin.Context) {
 	ctx.Status(http.StatusNoContent)
 }
 
+func (rh RunnersController) GetRunner(ctx *gin.Context) {
+	runnerId := ctx.Param("id")
+	response, responseError := rh.runnersService.GetRunner(runnerId)
+	if responseError != nil {
+		ctx.AbortWithStatusJSON(responseError.Status, responseError)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response)
+}
+
 func (rh RunnersController) GetRunnersBatch(ctx *gin.Context) {}
