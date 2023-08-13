@@ -28,7 +28,19 @@ func (rs RunnersService) CreateRunner(runner *models.Runner) (*models.Runner, *m
 	return rs.runnersRepository.CreateRunner(runner)
 }
 
-func (rs RunnersService) UpdateRunner(runner *models.Runner) *models.ResponseError {}
+func (rs RunnersService) UpdateRunner(runner *models.Runner) *models.ResponseError {
+	responseErr := validateRunnerId(runner.ID)
+	if responseErr != nil {
+		return responseErr
+	}
+
+	responseErr = validateRunner(runner)
+	if responseErr != nil {
+		return responseErr
+	}
+
+	rs.runnersRepository.UpdateRunner(runner)
+}
 
 func (rs RunnersService) DeleteRunner(runnerId string) *models.ResponseError {}
 
