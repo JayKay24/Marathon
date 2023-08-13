@@ -44,3 +44,14 @@ func (rh ResultsController) CreateResult(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, response)
 }
+
+func (rh ResultsController) DeleteResult(ctx *gin.Context) {
+	resultId := ctx.Param("id")
+	responseErr := rh.resultsService.DeleteResult(resultId)
+	if responseErr != nil {
+		ctx.AbortWithStatusJSON(responseErr.Status, responseErr)
+		return
+	}
+
+	ctx.Status(http.StatusNoContent)
+}
