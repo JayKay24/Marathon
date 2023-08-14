@@ -126,7 +126,50 @@ func (rs ResultsService) CreateResult(result *models.Result) (*models.Result, *m
 	return response, nil
 }
 
-func (rs ResultsService) DeleteResult(resultId string) *models.ResponseError {}
+func (rs ResultsService) DeleteResult(resultId string) *models.ResponseError {
+	if resultId == "" {
+		return &models.ResponseError{
+			Message: "Invalid result id",
+			Status:  http.StatusBadRequest,
+		}
+	}
+
+	result, responseErr := rs.resultsRepository.DeleteResult(resultId)
+	if responseErr != nil {
+		return responseErr
+	}
+
+	runner, responseErr := rs.runnersRepository.GetRunner(resultId)
+	if responseErr != nil {
+		return responseErr
+	}
+
+	// Check if the deleted result is personal best for the runner
+	if runner.PersonalBest == result.RaceResult {
+		personalBest, responseErr := rs.resultsRepository.GetPersonalBestResults(result.RunnerId)
+		if responseErr != nil {
+			return responseErr
+		}
+		runner.PersonalBest = personalBest
+	}
+
+	// Check if the deleted result is season best for the runner
+	currentYear := time.Now().Year()
+	if runner.SeasonBest == result.RaceResult && result.Year == currentYear {
+		seasonBest, responseErr := rs.resultsRepository.GetSeasonBestResults(result.RunnerID, result.Year)
+		if responseErr != nil {
+			return responseErr
+		}
+		runner.SeasonBest = seasonBest
+	}
+
+	responseErr = rs.runnersRepository.UpdateRunnerResults(runner)
+	if responseErr != nil {
+		return responseErr
+	}
+
+	return nil
+}
 
 func parseRaceResult(timeString string) (time.Duration, error) {
 	return time.ParseDuration(
