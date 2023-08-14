@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"marathon-postgresql/models"
+	"marathon-postgresql/services"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -20,7 +21,7 @@ func NewRunnersController(runnersService *services.RunnersService) *RunnersContr
 	}
 }
 
-func (rh RunnersController) CreateRunner(ctx *gin.Context) {
+func (rc RunnersController) CreateRunner(ctx *gin.Context) {
 	body, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
 		log.Println("Error while reading create runner request body", err)
@@ -36,7 +37,7 @@ func (rh RunnersController) CreateRunner(ctx *gin.Context) {
 		return
 	}
 
-	response, responseErr := rh.runnersService.CreateRunner(&runner)
+	response, responseErr := rc.runnersService.CreateRunner(&runner)
 	if responseErr != nil {
 		ctx.AbortWithStatusJSON(responseErr.Status, responseErr)
 		return
@@ -45,7 +46,7 @@ func (rh RunnersController) CreateRunner(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
-func (rh RunnersController) UpdateRunner(ctx *gin.Context) {
+func (rc RunnersController) UpdateRunner(ctx *gin.Context) {
 	body, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
 		log.Println("Error while reading update runner request body", err)
@@ -61,7 +62,7 @@ func (rh RunnersController) UpdateRunner(ctx *gin.Context) {
 		return
 	}
 
-	responseErr := rh.runnersService.UpdateRunner(&runner)
+	responseErr := rc.runnersService.UpdateRunner(&runner)
 	if responseErr != nil {
 		ctx.AbortWithStatusJSON(responseErr.Status, responseErr)
 		return
@@ -70,9 +71,9 @@ func (rh RunnersController) UpdateRunner(ctx *gin.Context) {
 	ctx.Status(http.StatusNoContent)
 }
 
-func (rh RunnersController) DeleteRunner(ctx *gin.Context) {
+func (rc RunnersController) DeleteRunner(ctx *gin.Context) {
 	runnerId := ctx.Param("id")
-	responseErr := rh.runnersService.DeleteRunner(runnerId)
+	responseErr := rc.runnersService.DeleteRunner(runnerId)
 	if responseErr != nil {
 		ctx.AbortWithStatusJSON(responseErr.Status, responseErr)
 		return
@@ -81,9 +82,9 @@ func (rh RunnersController) DeleteRunner(ctx *gin.Context) {
 	ctx.Status(http.StatusNoContent)
 }
 
-func (rh RunnersController) GetRunner(ctx *gin.Context) {
+func (rc RunnersController) GetRunner(ctx *gin.Context) {
 	runnerId := ctx.Param("id")
-	response, responseErr := rh.runnersService.GetRunner(runnerId)
+	response, responseErr := rc.runnersService.GetRunner(runnerId)
 	if responseErr != nil {
 		ctx.AbortWithStatusJSON(responseErr.Status, responseErr)
 		return
@@ -92,11 +93,11 @@ func (rh RunnersController) GetRunner(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
-func (rh RunnersController) GetRunnersBatch(ctx *gin.Context) {
+func (rc RunnersController) GetRunnersBatch(ctx *gin.Context) {
 	params := ctx.Request.URL.Query()
 	country := params.Get("country")
 	year := params.Get("year")
-	response, responseErr := rh.runnersService.GetRunnersBatch(country, year)
+	response, responseErr := rc.runnersService.GetRunnersBatch(country, year)
 	if responseErr != nil {
 		ctx.AbortWithError(responseErr.Status, responseErr)
 		return
