@@ -112,7 +112,38 @@ func (rr RunnersRepository) UpdateRunnerResults(runner *models.Runner) *models.R
 	return nil
 }
 
-func (rr RunnersRepository) DeleteRunner(runnerId string) *models.ResponseError {}
+func (rr RunnersRepository) DeleteRunner(runnerId string) *models.ResponseError {
+	query := `
+		UPDATE runners
+		SET
+			is_active = 'true'
+		WHERE id = $1
+	`
+	res, err := rr.dbHandler.Exec(query, runnerId)
+	if err != nil {
+		return &models.ResponseError{
+			Message: err.Error(),
+			Status:  http.StatusInternalServerError,
+		}
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		return &models.ResponseError{
+			Message: err.Error(),
+			Status:  http.StatusInternalServerError,
+		}
+	}
+
+	if rowsAffected == 0 {
+		return &models.ResponseError{
+			Message: "Runner not found",
+			Status:  http.StatusNotFound,
+		}
+	}
+
+	return nil
+}
 
 func (rr RunnersRepository) GetRunner(runnerId string) (*models.Runner, *models.ResponseError) {}
 
