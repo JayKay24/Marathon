@@ -116,7 +116,7 @@ func (rr RunnersRepository) DeleteRunner(runnerId string) *models.ResponseError 
 	query := `
 		UPDATE runners
 		SET
-			is_active = 'true'
+			is_active = 'false'
 		WHERE id = $1
 	`
 	res, err := rr.dbHandler.Exec(query, runnerId)
@@ -145,7 +145,53 @@ func (rr RunnersRepository) DeleteRunner(runnerId string) *models.ResponseError 
 	return nil
 }
 
-func (rr RunnersRepository) GetRunner(runnerId string) (*models.Runner, *models.ResponseError) {}
+func (rr RunnersRepository) GetRunner(runnerId string) (*models.Runner, *models.ResponseError) {
+	query := `
+		SELECT * FROM runners
+		WHERE id = $1
+	`
+	rows, err := rr.dbHandler.Query(query, runnerId)
+	if err != nil {
+		return nil, &models.ResponseError{
+			Message: err.Error(),
+			Status:  http.StatusInternalServerError,
+		}
+	}
+
+	defer rows.Close()
+
+	var id, firstName, lastName, country string
+	var personalBest, seasonBest sql.NullString
+	var age int
+	var isActive bool
+	for rows.Next() {
+		err := rows.Scan(&id, &firstName, &lastName, &country, &personalBest, &seasonBest, &age, &isActive)
+		if err != nil {
+			return nil, &models.ResponseError{
+				Message: err.Error(),
+				Status:  http.StatusInternalServerError,
+			}
+		}
+	}
+
+	if rows.Err() != nil {
+		return nil, &models.ResponseError{
+			Message: err.Error(),
+			Status:  http.StatusInternalServerError,
+		}
+	}
+
+	return &models.Runner{
+		ID:           id,
+		FirstName:    firstName,
+		LastName:     lastName,
+		Age:          age,
+		IsActive:     isActive,
+		Country:      country,
+		PersonalBest: personalBest.String,
+		SeasonBest:   seasonBest.String,
+	}, nil
+}
 
 func (rr RunnersRepository) GetRunnersByCountry(country string) ([]*models.Runner, *models.ResponseError) {
 }
