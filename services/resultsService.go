@@ -118,7 +118,7 @@ func (rs ResultsService) CreateResult(result *models.Result) (*models.Result, *m
 		}
 	}
 
-	responseErr = rs.resultsRepository.UpdateRunnerResults(runner)
+	responseErr = rs.runnersRepository.UpdateRunnerResults(runner)
 	if responseErr != nil {
 		return nil, responseErr
 	}

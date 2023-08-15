@@ -58,12 +58,14 @@ func (rr RunnersRepository) CreateRunner(runner *models.Runner) (*models.Runner,
 }
 
 func (rr RunnersRepository) UpdateRunner(runner *models.Runner) *models.ResponseError {
-	query := `UPDATE runners SET
-		first_name = $1
-		last_name = $2
-		age = $3
+	query := `
+	UPDATE runners 
+	SET
+		first_name = $1,
+		last_name = $2,
+		age = $3,
 		country = $4
-		WHERE id = $5
+	WHERE id = $5
 	`
 	res, err := rr.dbHandler.Exec(query, runner.FirstName, runner.LastName, runner.Age, runner.Country, runner.ID)
 	if err != nil {
@@ -82,6 +84,25 @@ func (rr RunnersRepository) UpdateRunner(runner *models.Runner) *models.Response
 	}
 
 	if rowsAffected == 0 {
+		return &models.ResponseError{
+			Message: err.Error(),
+			Status:  http.StatusInternalServerError,
+		}
+	}
+
+	return nil
+}
+
+func (rr RunnersRepository) UpdateRunnerResults(runner *models.Runner) *models.ResponseError {
+	query := `
+		UPDATE runners
+		SET
+			personal_best = $1,
+			season_best = $2
+		WHERE id = $3
+	`
+	_, err := rr.transaction.Exec(query, runner.PersonalBest, runner.SeasonBest, runner.ID)
+	if err != nil {
 		return &models.ResponseError{
 			Message: err.Error(),
 			Status:  http.StatusInternalServerError,
