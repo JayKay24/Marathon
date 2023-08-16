@@ -104,3 +104,52 @@ func (rr ResultsRepository) DeleteResult(resultId string) (*models.Result, *mode
 		Year:       year,
 	}, nil
 }
+
+func (rr ResultsRepository) GetAllRunnersResults(runnerId string) ([]*models.Result, *models.ResponseError) {
+	query := `
+		SELECT id, race_result, location, position, year
+		FROM results
+		WHERE runner_id = $1
+	`
+	rows, err := rr.dbHandler.Query(query, runnerId)
+	if err != nil {
+		return nil, &models.ResponseError{
+			Message: err.Error(),
+			Status:  http.StatusInternalServerError,
+		}
+	}
+
+	defer rows.Close()
+
+	results := make([]*models.Result, 0)
+	var id, raceResult, location string
+	var position, year int
+	for rows.Next() {
+		err := rows.Scan(&id, &raceResult, &location, &position, &year)
+		if err != nil {
+			return nil, &models.ResponseError{
+				Message: err.Error(),
+				Status:  http.StatusInternalServerError,
+			}
+		}
+
+		result := &models.Result{
+			ID:         id,
+			RaceResult: raceResult,
+			Location:   location,
+			Position:   position,
+			Year:       year,
+		}
+
+		results = append(results, result)
+	}
+
+	if rows.Err() != nil {
+		return nil, &models.ResponseError{
+			Message: err.Error(),
+			Status:  http.StatusInternalServerError,
+		}
+	}
+
+	return results, nil
+}
