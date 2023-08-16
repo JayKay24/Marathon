@@ -2,6 +2,7 @@ package services
 
 import (
 	"marathon-postgresql/models"
+	"marathon-postgresql/repositories"
 	"net/http"
 	"strconv"
 	"time"
@@ -66,12 +67,12 @@ func (rs RunnersService) GetRunner(runnerId string) (*models.Runner, *models.Res
 		return nil, responseErr
 	}
 
-	results, responseErr := rs.resultsRepository.getAllRunnerResults(runnerId)
+	results, responseErr := rs.resultsRepository.GetAllRunnersResults(runnerId)
 	if responseErr != nil {
 		return nil, responseErr
 	}
 
-	runner.Result = results
+	runner.Results = results
 	return runner, nil
 }
 

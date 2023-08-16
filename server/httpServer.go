@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"log"
 	"marathon-postgresql/controllers"
+	"marathon-postgresql/repositories"
+	"marathon-postgresql/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"

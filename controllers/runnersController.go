@@ -99,7 +99,7 @@ func (rc RunnersController) GetRunnersBatch(ctx *gin.Context) {
 	year := params.Get("year")
 	response, responseErr := rc.runnersService.GetRunnersBatch(country, year)
 	if responseErr != nil {
-		ctx.AbortWithError(responseErr.Status, responseErr)
+		ctx.AbortWithStatusJSON(responseErr.Status, responseErr)
 		return
 	}
 
