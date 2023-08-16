@@ -60,3 +60,47 @@ func (rr ResultsRepository) CreateResult(result *models.Result) (*models.Result,
 		Year:       result.Year,
 	}, nil
 }
+
+func (rr ResultsRepository) DeleteResult(resultId string) (*models.Result, *models.ResponseError) {
+	query := `
+		DELETE FROM results
+		WHERE id = $1
+		RETURNING runner_id, race_result, year
+	`
+
+	rows, err := rr.transaction.Query(query, resultId)
+	if err != nil {
+		return nil, &models.ResponseError{
+			Message: err.Error(),
+			Status:  http.StatusInternalServerError,
+		}
+	}
+
+	defer rows.Close()
+
+	var runnerId, raceResult string
+	var year int
+	for rows.Next() {
+		err := rows.Scan(&runnerId, &raceResult, &year)
+		if err != nil {
+			return nil, &models.ResponseError{
+				Message: err.Error(),
+				Status:  http.StatusInternalServerError,
+			}
+		}
+	}
+
+	if rows.Err() != nil {
+		return nil, &models.ResponseError{
+			Message: err.Error(),
+			Status:  http.StatusInternalServerError,
+		}
+	}
+
+	return &models.Result{
+		ID:         resultId,
+		RunnerID:   runnerId,
+		RaceResult: raceResult,
+		Year:       year,
+	}, nil
+}
