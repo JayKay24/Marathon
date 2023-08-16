@@ -198,4 +198,53 @@ func (rr RunnersRepository) GetRunnersByCountry(country string) ([]*models.Runne
 
 func (rr RunnersRepository) GetRunnersByYear(year int) ([]*models.Runner, *models.ResponseError) {}
 
-func (rr RunnersRepository) GetAllRunners() ([]*models.Runner, *models.ResponseError) {}
+func (rr RunnersRepository) GetAllRunners() ([]*models.Runner, *models.ResponseError) {
+	query := `
+		SELECT * FROM runners
+	`
+	rows, err := rr.dbHandler.Query(query)
+	if err != nil {
+		return nil, &models.ResponseError{
+			Message: err.Error(),
+			Status:  http.StatusInternalServerError,
+		}
+	}
+
+	defer rows.Close()
+
+	runners := make([]*models.Runner, 0)
+	var id, firstName, lastName, country string
+	var personalBest, seasonBest sql.NullString
+	var age int
+	var isActive bool
+	for rows.Next() {
+		err := rows.Scan(&id, &firstName, &lastName, &age, &isActive, &country, &personalBest, &seasonBest)
+		if err != nil {
+			return nil, &models.ResponseError{
+				Message: err.Error(),
+				Status:  http.StatusInternalServerError,
+			}
+		}
+
+		runner := &models.Runner{
+			ID:           id,
+			FirstName:    firstName,
+			LastName:     lastName,
+			Country:      country,
+			PersonalBest: personalBest.String,
+			SeasonBest:   seasonBest.String,
+			Age:          age,
+			IsActive:     isActive,
+		}
+		runners = append(runners, runner)
+	}
+
+	if rows.Err() != nil {
+		return nil, &models.ResponseError{
+			Message: err.Error(),
+			Status:  http.StatusInternalServerError,
+		}
+	}
+
+	return runners, nil
+}
