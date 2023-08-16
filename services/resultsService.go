@@ -171,7 +171,7 @@ func (rs ResultsService) DeleteResult(resultId string) *models.ResponseError {
 
 	// Check if the deleted result is personal best for the runner
 	if runner.PersonalBest == result.RaceResult {
-		personalBest, responseErr := rs.resultsRepository.GetPersonalBestResults(result.RunnerId)
+		personalBest, responseErr := rs.resultsRepository.GetPersonalBestResults(result.RunnerID)
 		if responseErr != nil {
 			repositories.RollbackTransaction(rs.runnersRepository, rs.resultsRepository)
 			return responseErr
