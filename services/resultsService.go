@@ -2,6 +2,7 @@ package services
 
 import (
 	"marathon-postgresql/models"
+	"marathon-postgresql/repositories"
 	"net/http"
 	"time"
 )
@@ -134,6 +135,14 @@ func (rs ResultsService) DeleteResult(resultId string) *models.ResponseError {
 		}
 	}
 
+	err := repositories.BeginTransaction(rs.runnersRepository, rs.resultsRepository)
+	if err != nil {
+		return &models.ResponseError{
+			Message: "Failed to start transaction",
+			Status:  http.StatusBadRequest,
+		}
+	}
+
 	result, responseErr := rs.resultsRepository.DeleteResult(resultId)
 	if responseErr != nil {
 		return responseErr
@@ -141,6 +150,7 @@ func (rs ResultsService) DeleteResult(resultId string) *models.ResponseError {
 
 	runner, responseErr := rs.runnersRepository.GetRunner(resultId)
 	if responseErr != nil {
+		repositories.RollbackTransaction(rs.runnersRepository, rs.resultsRepository)
 		return responseErr
 	}
 
@@ -148,6 +158,7 @@ func (rs ResultsService) DeleteResult(resultId string) *models.ResponseError {
 	if runner.PersonalBest == result.RaceResult {
 		personalBest, responseErr := rs.resultsRepository.GetPersonalBestResults(result.RunnerId)
 		if responseErr != nil {
+			repositories.RollbackTransaction(rs.runnersRepository, rs.resultsRepository)
 			return responseErr
 		}
 		runner.PersonalBest = personalBest
@@ -158,6 +169,7 @@ func (rs ResultsService) DeleteResult(resultId string) *models.ResponseError {
 	if runner.SeasonBest == result.RaceResult && result.Year == currentYear {
 		seasonBest, responseErr := rs.resultsRepository.GetSeasonBestResults(result.RunnerID, result.Year)
 		if responseErr != nil {
+			repositories.RollbackTransaction(rs.runnersRepository, rs.resultsRepository)
 			return responseErr
 		}
 		runner.SeasonBest = seasonBest
@@ -165,8 +177,11 @@ func (rs ResultsService) DeleteResult(resultId string) *models.ResponseError {
 
 	responseErr = rs.runnersRepository.UpdateRunnerResults(runner)
 	if responseErr != nil {
+		repositories.RollbackTransaction(rs.runnersRepository, rs.resultsRepository)
 		return responseErr
 	}
+
+	repositories.CommitTransaction(rs.runnersRepository, rs.resultsRepository)
 
 	return nil
 }
