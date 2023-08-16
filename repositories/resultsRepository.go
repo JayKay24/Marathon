@@ -153,3 +153,40 @@ func (rr ResultsRepository) GetAllRunnersResults(runnerId string) ([]*models.Res
 
 	return results, nil
 }
+
+func (rr ResultsRepository) GetPersonalBestResults(runnerId string) (string, *models.ResponseError) {
+	query := `
+		SELECT MIN(race_result)
+		FROM results
+		WHERE runner_id = $1
+	`
+	rows, err := rr.dbHandler.Query(query, runnerId)
+	if err != nil {
+		return "", &models.ResponseError{
+			Message: err.Error(),
+			Status:  http.StatusInternalServerError,
+		}
+	}
+
+	defer rows.Close()
+
+	var raceResult string
+	for rows.Next() {
+		err := rows.Scan(&raceResult)
+		if err != nil {
+			return "", &models.ResponseError{
+				Message: err.Error(),
+				Status:  http.StatusInternalServerError,
+			}
+		}
+	}
+
+	if rows.Err() != nil {
+		return "", &models.ResponseError{
+			Message: err.Error(),
+			Status:  http.StatusInternalServerError,
+		}
+	}
+
+	return raceResult, nil
+}
