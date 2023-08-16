@@ -66,6 +66,14 @@ func (rs ResultsService) CreateResult(result *models.Result) (*models.Result, *m
 		}
 	}
 
+	err = repositories.BeginTransaction(rs.runnersRepository, rs.resultsRepository)
+	if err != nil {
+		return nil, &models.ResponseError{
+			Message: "Failed to start transaction",
+			Status:  http.StatusBadRequest,
+		}
+	}
+
 	response, responseErr := rs.resultsRepository.CreateResult(result)
 	if responseErr != nil {
 		return nil, responseErr
@@ -73,10 +81,12 @@ func (rs ResultsService) CreateResult(result *models.Result) (*models.Result, *m
 
 	runner, responseErr := rs.runnersRepository.GetRunner(result.RunnerID)
 	if responseErr != nil {
+		repositories.RollbackTransaction(rs.runnersRepository, rs.resultsRepository)
 		return nil, responseErr
 	}
 
 	if runner == nil {
+		repositories.RollbackTransaction(rs.runnersRepository, rs.resultsRepository)
 		return nil, &models.ResponseError{
 			Message: "Runner not found",
 			Status:  http.StatusNotFound,
@@ -89,6 +99,7 @@ func (rs ResultsService) CreateResult(result *models.Result) (*models.Result, *m
 	} else {
 		personalBest, err := parseRaceResult(runner.PersonalBest)
 		if err != nil {
+			repositories.RollbackTransaction(rs.runnersRepository, rs.resultsRepository)
 			return nil, &models.ResponseError{
 				Message: "Failed to parse personal best",
 				Status:  http.StatusInternalServerError,
@@ -107,6 +118,7 @@ func (rs ResultsService) CreateResult(result *models.Result) (*models.Result, *m
 		} else {
 			seasonBest, err := parseRaceResult(runner.SeasonBest)
 			if err != nil {
+				repositories.RollbackTransaction(rs.runnersRepository, rs.resultsRepository)
 				return nil, &models.ResponseError{
 					Message: "Failed to parse season best",
 					Status:  http.StatusInternalServerError,
@@ -121,8 +133,11 @@ func (rs ResultsService) CreateResult(result *models.Result) (*models.Result, *m
 
 	responseErr = rs.runnersRepository.UpdateRunnerResults(runner)
 	if responseErr != nil {
+		repositories.RollbackTransaction(rs.runnersRepository, rs.resultsRepository)
 		return nil, responseErr
 	}
+
+	repositories.CommitTransaction(rs.runnersRepository, rs.resultsRepository)
 
 	return response, nil
 }
