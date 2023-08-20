@@ -135,7 +135,7 @@ func validateRunner(runner *models.Runner) *models.ResponseError {
 
 	if runner.Country == "" {
 		return &models.ResponseError{
-			Message: "Invalid Country",
+			Message: "Invalid country",
 			Status:  http.StatusBadRequest,
 		}
 	}
