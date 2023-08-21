@@ -43,8 +43,10 @@ func TestGetRunnersResponse(t *testing.T) {
 
 func initTestRouter(dbHandler *sql.DB) *gin.Engine {
 	runnersRepository := repositories.NewRunnersRepository(dbHandler)
+	usersRepository := repositories.NewUsersRepository(dbHandler)
 	runnersService := services.NewRunnersService(runnersRepository, nil)
-	runnersController := NewRunnersController(runnersService)
+	usersService := services.NewUsersService(usersRepository)
+	runnersController := NewRunnersController(runnersService, usersService)
 
 	router := gin.Default()
 	router.GET("/", runnersController.GetRunnersBatch)

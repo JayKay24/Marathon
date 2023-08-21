@@ -11,9 +11,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const ROLE_ADMIN = "admin"
-const ROLE_RUNNER = "runner"
-
 type RunnersController struct {
 	runnersService *services.RunnersService
 	usersService   *services.UsersService
