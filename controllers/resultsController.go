@@ -11,17 +11,23 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const ROLE_ADMIN = "admin"
+const ROLE_RUNNER = "runner"
+
 type ResultsController struct {
 	resultsService *services.ResultsService
+	usersService   *services.UsersService
 }
 
-func NewResultsController(resultsService *services.ResultsService) *ResultsController {
+func NewResultsController(resultsService *services.ResultsService, usersService *services.UsersService) *ResultsController {
 	return &ResultsController{
 		resultsService: resultsService,
+		usersService:   usersService,
 	}
 }
 
-func (rh ResultsController) CreateResult(ctx *gin.Context) {
+func (rc ResultsController) CreateResult(ctx *gin.Context) {
+	rc.checkAuthorization(ctx, ROLE_ADMIN)
 	body, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
 		log.Println("Error while reading create result request body", err)
@@ -37,7 +43,7 @@ func (rh ResultsController) CreateResult(ctx *gin.Context) {
 		return
 	}
 
-	response, responseErr := rh.resultsService.CreateResult(&result)
+	response, responseErr := rc.resultsService.CreateResult(&result)
 	if responseErr != nil {
 		ctx.AbortWithStatusJSON(responseErr.Status, responseErr)
 		return
@@ -46,13 +52,34 @@ func (rh ResultsController) CreateResult(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
-func (rh ResultsController) DeleteResult(ctx *gin.Context) {
+func (rc ResultsController) DeleteResult(ctx *gin.Context) {
+	rc.checkAuthorization(ctx, ROLE_ADMIN)
 	resultId := ctx.Param("id")
-	responseErr := rh.resultsService.DeleteResult(resultId)
+	responseErr := rc.resultsService.DeleteResult(resultId)
 	if responseErr != nil {
 		ctx.AbortWithStatusJSON(responseErr.Status, responseErr)
 		return
 	}
 
 	ctx.Status(http.StatusNoContent)
+}
+
+func (rc ResultsController) checkAuthorization(ctx *gin.Context, userRole string) {
+	var roles []string
+	if userRole == ROLE_RUNNER {
+		roles = append(roles, ROLE_ADMIN, ROLE_RUNNER)
+	} else {
+		roles = append(roles, ROLE_ADMIN)
+	}
+
+	accessToken := ctx.Request.Header.Get("Token")
+	auth, responseErr := rc.usersService.AuthorizeUser(accessToken, roles)
+	if responseErr != nil {
+		ctx.AbortWithStatusJSON(responseErr.Status, responseErr)
+		return
+	}
+	if !auth {
+		ctx.Status(http.StatusUnauthorized)
+		return
+	}
 }

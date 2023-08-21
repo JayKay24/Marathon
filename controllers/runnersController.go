@@ -11,17 +11,23 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const ROLE_ADMIN = "admin"
+const ROLE_RUNNER = "runner"
+
 type RunnersController struct {
 	runnersService *services.RunnersService
+	usersService   *services.UsersService
 }
 
-func NewRunnersController(runnersService *services.RunnersService) *RunnersController {
+func NewRunnersController(runnersService *services.RunnersService, usersService *services.UsersService) *RunnersController {
 	return &RunnersController{
 		runnersService: runnersService,
+		usersService:   usersService,
 	}
 }
 
 func (rc RunnersController) CreateRunner(ctx *gin.Context) {
+	rc.checkAuthorization(ctx, ROLE_ADMIN)
 	body, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
 		log.Println("Error while reading create runner request body", err)
@@ -47,6 +53,7 @@ func (rc RunnersController) CreateRunner(ctx *gin.Context) {
 }
 
 func (rc RunnersController) UpdateRunner(ctx *gin.Context) {
+	rc.checkAuthorization(ctx, ROLE_ADMIN)
 	body, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
 		log.Println("Error while reading update runner request body", err)
@@ -72,6 +79,7 @@ func (rc RunnersController) UpdateRunner(ctx *gin.Context) {
 }
 
 func (rc RunnersController) DeleteRunner(ctx *gin.Context) {
+	rc.checkAuthorization(ctx, ROLE_ADMIN)
 	runnerId := ctx.Param("id")
 	responseErr := rc.runnersService.DeleteRunner(runnerId)
 	if responseErr != nil {
@@ -83,6 +91,7 @@ func (rc RunnersController) DeleteRunner(ctx *gin.Context) {
 }
 
 func (rc RunnersController) GetRunner(ctx *gin.Context) {
+	rc.checkAuthorization(ctx, ROLE_RUNNER)
 	runnerId := ctx.Param("id")
 	response, responseErr := rc.runnersService.GetRunner(runnerId)
 	if responseErr != nil {
@@ -94,6 +103,7 @@ func (rc RunnersController) GetRunner(ctx *gin.Context) {
 }
 
 func (rc RunnersController) GetRunnersBatch(ctx *gin.Context) {
+	rc.checkAuthorization(ctx, ROLE_RUNNER)
 	params := ctx.Request.URL.Query()
 	country := params.Get("country")
 	year := params.Get("year")
@@ -104,4 +114,24 @@ func (rc RunnersController) GetRunnersBatch(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, response)
+}
+
+func (rc RunnersController) checkAuthorization(ctx *gin.Context, userRole string) {
+	var roles []string
+	if userRole == ROLE_RUNNER {
+		roles = append(roles, ROLE_ADMIN, ROLE_RUNNER)
+	} else {
+		roles = append(roles, ROLE_ADMIN)
+	}
+
+	accessToken := ctx.Request.Header.Get("Token")
+	auth, responseErr := rc.usersService.AuthorizeUser(accessToken, roles)
+	if responseErr != nil {
+		ctx.AbortWithStatusJSON(responseErr.Status, responseErr)
+		return
+	}
+	if !auth {
+		ctx.Status(http.StatusUnauthorized)
+		return
+	}
 }
