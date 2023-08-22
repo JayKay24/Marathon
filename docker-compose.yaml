@@ -1,0 +1,18 @@
+version: "3.7"
+
+services:
+  marathon-db:
+    image: postgres:14
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./dbscripts:/docker-entrypoint-initdb.d
+  marathon-app:
+    depends_on:
+      - marathon-db
+    image: jaykay24/marathon-app:1.0.0
+    ports:
+      - 8080:8080
