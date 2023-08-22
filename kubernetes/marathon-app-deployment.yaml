@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: marathon-app
+spec:
+  selector:
+    matchLabels:
+      app: marathon-app
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: marathon-app
+    spec:
+      containers:
+        - image: jaykay24/marathon-app:1.0.0
+          name: marathon-app
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ENV
+              value: "k8s"
+
