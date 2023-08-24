@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: marathon-app-metrics-service
+spec:
+  selector:
+    app: marathon-app
+  type: LoadBalancer
+  ports:
+  - port: 9000
+    name: http
+    protocol: TCP
+    targetPort: 9000
