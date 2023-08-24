@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"log"
+	"marathon-postgresql/metrics"
 	"marathon-postgresql/models"
 	"marathon-postgresql/services"
 	"net/http"
@@ -27,6 +28,7 @@ func NewResultsController(resultsService *services.ResultsService, usersService 
 }
 
 func (rc ResultsController) CreateResult(ctx *gin.Context) {
+	metrics.HttpRequestsController.Inc()
 	rc.checkAuthorization(ctx, ROLE_ADMIN)
 	body, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
@@ -53,6 +55,7 @@ func (rc ResultsController) CreateResult(ctx *gin.Context) {
 }
 
 func (rc ResultsController) DeleteResult(ctx *gin.Context) {
+	metrics.HttpRequestsController.Inc()
 	rc.checkAuthorization(ctx, ROLE_ADMIN)
 	resultId := ctx.Param("id")
 	responseErr := rc.resultsService.DeleteResult(resultId)

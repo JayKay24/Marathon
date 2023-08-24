@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: marathon-prometheus
+spec:
+  selector:
+    matchLabels:
+      app: marathon-prometheus
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: marathon-prometheus
+    spec:
+      containers:
+        - name: marathon-prometheus
+          image: bitnami/prometheus:latest
+          ports:
+            - containerPort: 9090
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/prometheus
+      volumes:
+        - name: config-volume
+          configMap:
+            name: prometheus-config
+            items:
+              - key: prometheus.yml
+                path: prometheus.yml
+

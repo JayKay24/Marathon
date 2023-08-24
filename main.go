@@ -25,6 +25,8 @@ func main() {
 	config := config.InitConfig(getConfigFileName())
 	log.Println("Initializing Database")
 	dbHandler := server.InitDatabase(config)
+	log.Println("Initializing Database")
+	go server.InitPrometheus()
 	log.Println("Initializing HTTP Server")
 	httpServer := server.InitHttpServer(config, dbHandler)
 	httpServer.Start()
