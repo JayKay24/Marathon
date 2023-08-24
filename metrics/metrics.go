@@ -23,7 +23,7 @@ var (
 
 	GetAllRunnersTimer = promauto.NewHistogram(
 		prometheus.HistogramOpts{
-			Name: "runners_app_get_all_runners_duration",
+			Name: "marathon_app_get_all_runners_duration",
 			Help: "Duration of get all runners operation",
 		},
 	)
