@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"log"
+	"marathon-postgresql/metrics"
 	"marathon-postgresql/services"
 	"net/http"
 
@@ -19,6 +20,7 @@ func NewUsersController(usersService *services.UsersService) *UsersController {
 }
 
 func (uc UsersController) Login(ctx *gin.Context) {
+	metrics.HttpRequestsController.Inc()
 	username, password, ok := ctx.Request.BasicAuth()
 	if !ok {
 		log.Println("Error while reading credentials")
@@ -35,6 +37,7 @@ func (uc UsersController) Login(ctx *gin.Context) {
 }
 
 func (uc UsersController) Logout(ctx *gin.Context) {
+	metrics.HttpRequestsController.Inc()
 	accessToken := ctx.Request.Header.Get("Token")
 	responseErr := uc.usersService.Logout(accessToken)
 	if responseErr != nil {
