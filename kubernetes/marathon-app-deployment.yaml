@@ -18,6 +18,9 @@ spec:
           imagePullPolicy: Never
           ports:
             - containerPort: 8080
+              name: web
+            - containerPort: 9000
+              name: metrics
           env:
             - name: ENV
               value: "k8s"
